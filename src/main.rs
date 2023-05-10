@@ -1,22 +1,10 @@
-use axum::{extract::Path, response::Html, routing::get, Router};
-
-async fn root() -> String {
-    format!("Hiya Guy")
-}
-
-async fn greet(Path(user_name): Path<String>) -> String {
-    format!("Hello {}", &user_name)
-}
+use std::net::TcpListener;
+use zero2prod::{startup::run, configuration::get_configuration};
 
 #[tokio::main]
 async fn main() {
-    println!("Hello, world!");
-
-    let app = Router::new()
-        .route("/", get(root))
-        .route("/*user_name", get(greet));
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let configuration = get_configuration().expect("Failed to read config.");
+    let address = format!("127.0.0.1:{}", configuration.application_port);
+    let listener = TcpListener::bind(address).expect("Failed to bind random port");
+    run(listener).await.unwrap();
 }
